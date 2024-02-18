@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      #- "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  publisher:
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    container_name: publisher
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  subscriber1:
+    build:
+      context: ./subscriber1
+      dockerfile: Dockerfile
+    container_name: subscriber1
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  subscriber2:
+    build:
+      context: ./subscriber2
+      dockerfile: Dockerfile
+    container_name: subscriber2
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
